@@ -20,5 +20,4 @@ A simple TUI client for `transmission-daemon`.
 
 ## Why this fork?
 
-It provides more color support(it will get better) and 
-more information about running torrents
+It provides more color support (it will get better) and more information about running torrents
