@@ -1,0 +1,2 @@
+#!/usr/bin/sh
+sudo rm -f /usr/bin/torque

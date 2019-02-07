@@ -1,0 +1,11 @@
+# Supporting every type of color formatting according to the
+# VT100 standard escape sequences
+
+# Colors should be added as they appear here
+#    - without spaces before and after the '=' sign
+#    - using quotes
+
+cready="32"
+cseeding="34"
+cdl="33"
+cstop="31"

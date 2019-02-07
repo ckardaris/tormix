@@ -1,0 +1,9 @@
+#!/usr/bin/sh
+dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+sudo cp -f $dir/torque /usr/bin/ 
+
+if [ ! -d "$HOME/.config/torque/themes" ]; then
+	mkdir -p $HOME/.config/torque/themes
+fi
+cp -f $dir/themes/* $HOME/.config/torque/themes

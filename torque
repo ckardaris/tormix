@@ -27,9 +27,12 @@ refresh() {
 }
 
 status() {
+	# I reset formatting after every word in case some color has more attributes than fg color
 	# color info
-	printf '\e[%sH\e[1m\e[32mReady   \e[34mSeeding   '  "$((LINES-2))"
-	printf '\e[33mDownloading   \e[31mStopped\e[m\n'
+	printf '\e[%sH\e[1m\e[%smReady\e[m\e[1m   \e[1m\e[%smSeeding\e[m\e[1m   '  "$((LINES-2))" \
+		"$cready" "$cseeding"
+	printf '\e[%smDownloading\e[m\e[1m   \e[%smStopped\e[m\n' \
+		"$cdl" "$cstop"
 	# '\e[2m': Turn low intensity mode on (shadow letters)
 	# '\e[%s;H%s'    "$((LINES-1))": move cursor to line $lines-1
 	# '\e[m': Turn off character attributes (no more shadow letters)
@@ -50,7 +53,7 @@ get_torrents() {
 
 	# new j is max of old j and number of torrents
     for((i=${k:=0};i<(j=j>${#t[@]}?${#t[@]}:j);i++));{ t_print "${t[i]/n\/a/0}";}
-    status "[s]tart [p]ause [r]emove [o]pen [q]uit [j/k] scroll ($j/${#t[@]})"$'\e[H'
+    status "[s]tart [p]ause [r]emove [o]pen [t]heme [q]uit [j/k] scroll ($j/${#t[@]})"$'\e[H'
 }
 
 t_print() {
@@ -112,29 +115,44 @@ t_print() {
 	# blue: seeding
 	if [ $perc == 100 ] && [ "$stat" == "Stopped" ]
 	then
-		c=32271340
+		#color
+		c=$cready
+		#unicode
+		u=2713
+		#next char
+		l=40
 	elif [ $perc == 100 ] && [ "$stat" == "Idle" ]
 	then
-		c=32271340
+		c=$cready
+		u=2713
+		l=40
 	elif [ $perc == 100 ] && [ "$stat" == "Seeding" ]
 	then
-		c=34271340
+		c=$cseeding
+		u=2713
+		l=40
 	elif [ $perc -lt $((100)) ] && [ "$stat" == "Stopped" ]
 	then
-		c=31000000
+		c=$cstop
+		u=0000
+		l=00
 	elif [ $perc -lt $((100)) ] && [ "$stat" == "Idle" ]
 	then
-		c=33000000
+		c=$cdl
+		u=0000
+		l=00
 	elif [ $perc -lt $((100)) ] && [ "$stat" == "Active" ]
 	then
-		c=33000000
+		c=$cdl
+		u=0000
+		l=00
 	fi
 	# '\e[K' : clear line right of the cursor
 	# '\e[2m': low intensity mode on
 	# '\e[m': Turn off character attributes (no more low intensity)
 	# '\e[1m': bold mode on
     printf '\e[K\e[2m%s\e[m \e[1m\e[%s%b%s\e[m\n' \
-           "$num:" "${c:0:2}m" "\\u${c:2:4}\\${c:6}" "$name"
+           "$num:" "${c}m" "\\u${u}\\${l}" "$name"
     # '\e7' save cursor position and attributes
     # '\e8' restore cursor position and attributes
 	# 'e[xC' move x columns right
@@ -154,6 +172,8 @@ prompt() {
         o) read -rp "load magnet: ";     send -a "$REPLY"; k=0 ;;
         j) ((j==${#t[@]}))||((k=k>=j?k:++k,j=j<${#t[@]}?++j:j)) ;;
         k) ((k==0))||((k=k<=j?k>0?--k:0:j,j=j>0?--j:j)) ;;
+		t) read -rp "change theme: "; source $HOME/.config/torque/themes/$REPLY.theme; \
+			cp -f $HOME/.config/torque/themes/{$REPLY,saved}.theme;; 
 		q) exit ;;
 	esac
 
@@ -169,4 +189,9 @@ main() {
     for ((;;)); { get_torrents; read -rsN1 -t1 && prompt "$REPLY"; }
 }
 
+if [ ! -f $HOME/.config/torque/themes/.saved.theme ]
+then
+	cp -f $HOME/.config/torque/themes/{default,.saved}.theme
+fi
+source $HOME/.config/torque/themes/.saved.theme
 main
