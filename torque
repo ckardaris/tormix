@@ -173,7 +173,7 @@ prompt() {
         j) ((j==${#t[@]}))||((k=k>=j?k:++k,j=j<${#t[@]}?++j:j)) ;;
         k) ((k==0))||((k=k<=j?k>0?--k:0:j,j=j>0?--j:j)) ;;
 		t) read -rp "change theme: "; source $HOME/.config/torque/themes/$REPLY.theme; \
-			cp -f $HOME/.config/torque/themes/{$REPLY,saved}.theme;; 
+			cp -f $HOME/.config/torque/themes/{$REPLY,.saved}.theme;; 
 		q) exit ;;
 	esac
 
