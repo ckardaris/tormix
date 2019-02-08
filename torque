@@ -21,24 +21,25 @@ refresh() {
     shopt -s checkwinsize; (:;:)
     [[ -z "$LINES" ]] && read -r LINES COLUMNS < <(stty size)
     # max_t is maximum torrents to be displayed in view
-	# change number of lines to use in the end of the screen to 3 
-	# to provide space for the color line
-	((max_t=(LINES-3)/3))
+	# change number of lines to use in the end of the screen to 4 
+	# to provide space for the color line and the line of pressed spaced after input
+	((max_t=(LINES-4)/3))
 	# start from 1st torrent if they all fit
 	((top=max_t<${#t[@]}?top:0))
+	stty -echo
 }
 
 status() {
 	# I reset formatting after every word in case some color has more attributes than fg color
 	# color info
-	printf '\e[%sH\e[1m\e[%smReady\e[m\e[1m   \e[1m\e[%smSeeding\e[m\e[1m   '  "$((LINES-2))" \
+	printf '\e[%sH\e[1m\e[%smReady\e[m\e[1m   \e[1m\e[%smSeeding\e[m\e[1m   '  "$((LINES-3))" \
 		"$cready" "$cseeding"
 	printf '\e[%smDownloading\e[m\e[1m   \e[%smStopped\e[m\n' \
 		"$cdl" "$cstop"
 	# '\e[2m': Turn low intensity mode on (shadow letters)
 	# '\e[%s;H%s'    "$((LINES-1))": move cursor to line $lines-1
 	# '\e[m': Turn off character attributes (no more shadow letters)
-    printf '\e[2m\e[%sH%s\e[m' "$((LINES-1))" "$1"
+    printf '\e[2m\e[%sH%s\e[m' "$((LINES-2))" "$1"
 }
 
 get_torrents() {
@@ -170,24 +171,27 @@ t_print() {
 }
 
 prompt() {
-    send() { transmission-remote "$@" >/dev/null; }
-    status $'\e[B\e[?25h'
+    send() { transmission-remote "$@" &> /dev/null; }
+	# I hide output in all other cases in order to prevent screen 
+	# tearing from excessive number of inputs
+	line() { status $'\e[B\e[?25h' ; stty echo;}
 
     case "$1" in
-        s) read -rp "start torrent: #";  send -t "$REPLY" -s ;;
-        p) read -rp "pause torrent: #";  send -t "$REPLY" -S ;;
-        r) read -rp "remove torrent: #"; send -t "$REPLY" -r; k=0 ;;
-        o) read -erp "load magnet: ";     send -a "$REPLY"; k=0 ;;
-        #j) ((j==${#t[@]}))||((k=k>=j?k:++k,j=j<${#t[@]}?++j:j)) ;;
+        s) line; read -rp "start torrent: #";  send -t "$REPLY" -s ;;
+        p) line; read -rp "pause torrent: #";  send -t "$REPLY" -S ;;
+        r) line; read -rp "remove torrent: #"; send -t "$REPLY" -r; top=0 ;;
+		# if I add something I want to see it
+		o) line; read -erp "load magnet: ";     send -a "$REPLY"; ((top=top+max_t>${#t[@]}+1?top:${#t[@]}+1-max_t)) ;;
 		j) ((max_t>=${#t[@]})) || ((top=top+max_t<${#t[@]}?++top:top)) ;;
-        #k) ((k==0))||((k=k<=j?k>0?--k:0:j,j=j>0?--j:j)) ;;
         k) ((top==0)) || ((top--)) ;;
-		t) read -rp "change theme: "; source $HOME/.config/torque/themes/$REPLY.theme; \
+		t) line; read -rp "change theme: "; source $HOME/.config/torque/themes/$REPLY.theme; \
 			cp -f $HOME/.config/torque/themes/{$REPLY,.saved}.theme ;; 
 		q) exit ;;
 	esac
-
-    [[ "$1" =~ (j|k) ]] || refresh && printf '\e[?25l\e[H'
+	
+	[[ "$1" =~ (s|p|q|o|t) ]] && printf "\e[%sH\e[K\e[?25l\e[H" "$((LINES-1))"
+	# if user deletes an entry refresh is required
+	[[ "$1" =~ (r) ]] && refresh
 }
 
 main() {
@@ -195,10 +199,9 @@ main() {
 	top=0
 
     trap 'reset_terminal; printf "\e[?1049l"' EXIT
-    # We don't want k to be 0 after refresh -> preserve state
 	trap 'refresh' SIGWINCH
 
-    for ((;;)); { get_torrents; read -rsN1 -t1 && prompt "$REPLY"; }
+    for ((;;)); { get_torrents; read -rsN1 -t1 && prompt "$REPLY";}
 }
 
 if [ ! -f $HOME/.config/torque/themes/.saved.theme ]
