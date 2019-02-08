@@ -165,8 +165,8 @@ t_print() {
 	# '\e[2m': low intensity mode on
 	# '\e[m': Turn off character attributes (no more low intensity)
 	# '\e[1m': bold mode on
-    printf '\e[K\e[2m\e7%s\e[m\e8\e[4C\e[1m\e[%s%b%s\e[m\n' \
-           "$num:" "${c}m" "\\u${u}\\${l}" "$name"
+	printf '\e[K\e[2m\e7%s\e8\e[4C\e[m\e[1m\e[%s%b%s\e[m\n' \
+		"$num:"	"${c}m" "\\u${u}\\${l}" "$name"
     # '\e7' save cursor position and attributes
     # '\e8' restore cursor position and attributes
 	# 'e[xC' move x columns right
