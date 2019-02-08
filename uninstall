@@ -1,2 +1,2 @@
-#!/usr/bin/sh
-sudo rm -f /usr/bin/torque
+#!/usr/bin/env bash
+sudo rm -f /usr/bin/tormix

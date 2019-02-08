@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Torque - minimal tui for transmission-daemon.
+# tormix - minimal tui for transmission-daemon.
 
 reset_terminal() {
 	# Code copied from fff script
@@ -103,7 +103,12 @@ t_print() {
 			((cnt+=3))
 		elif [ "${info[$cnt]}" == "Uploaded:" ]
 		then
-			sent="${info[$cnt+1]} ${info[$cnt+2]}"
+			if [ "${info[$cnt+1]}" == "None" ]
+			then
+				sent="0 MB"
+			else
+				sent="${info[$cnt+1]} ${info[$cnt+2]}"
+			fi
 			found=1
 		fi
 	done
@@ -160,7 +165,7 @@ t_print() {
 	# '\e[2m': low intensity mode on
 	# '\e[m': Turn off character attributes (no more low intensity)
 	# '\e[1m': bold mode on
-    printf '\e[K\e[2m%s\e[m \e[1m\e[%s%b%s\e[m\n' \
+    printf '\e[K\e[2m\e7%s\e[m\e8\e[4C\e[1m\e[%s%b%s\e[m\n' \
            "$num:" "${c}m" "\\u${u}\\${l}" "$name"
     # '\e7' save cursor position and attributes
     # '\e8' restore cursor position and attributes
@@ -184,8 +189,8 @@ prompt() {
 		o) line; read -erp "load magnet: ";     send -a "$REPLY"; ((top=top+max_t>${#t[@]}+1?top:${#t[@]}+1-max_t)) ;;
 		j) ((max_t>=${#t[@]})) || ((top=top+max_t<${#t[@]}?++top:top)) ;;
         k) ((top==0)) || ((top--)) ;;
-		t) line; read -rp "change theme: "; source $HOME/.config/torque/themes/$REPLY.theme; \
-			cp -f $HOME/.config/torque/themes/{$REPLY,.saved}.theme ;; 
+		t) line; read -rp "change theme: "; source $HOME/.config/tormix/themes/$REPLY.theme &> /dev/null; \
+			cp -f $HOME/.config/tormix/themes/{$REPLY,.saved}.theme &> /dev/null;; 
 		q) exit ;;
 	esac
 	
@@ -204,9 +209,9 @@ main() {
     for ((;;)); { get_torrents; read -rsN1 -t1 && prompt "$REPLY";}
 }
 
-if [ ! -f $HOME/.config/torque/themes/.saved.theme ]
+if [ ! -f $HOME/.config/tormix/themes/.saved.theme ]
 then
-	cp -f $HOME/.config/torque/themes/{default,.saved}.theme
+	cp -f $HOME/.config/tormix/themes/{default,.saved}.theme
 fi
-source $HOME/.config/torque/themes/.saved.theme
+source $HOME/.config/tormix/themes/.saved.theme
 main

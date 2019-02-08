@@ -1,11 +1,11 @@
-# torque
+# tormix
 
-My fork of the <a href="https://github.com/dylanaraps/torque">original project</a> from <a href="https://github.com/dylanaraps">dylanaraps</a>
+Based on the <a href="https://github.com/dylanaraps/torque">original project</a> from <a href="https://github.com/dylanaraps">dylanaraps</a>
+I decided to add many more features
 
 A simple TUI client for `transmission-daemon`.
 
-- Fast (*Written in pure `bash`*).
-- Smooth Scrolling (*Using vim keybindings.*)
+- Written in `bash`.
 
 
 ## Dependencies
@@ -16,8 +16,6 @@ A simple TUI client for `transmission-daemon`.
 ## Running
 
 1. Start `transmission-daemon`.
-2. Run `torque`.
+2. Run `tormix`.
 
-## Why this fork?
-
-It provides more color support (it will get better) and more information about running torrents
+## Features

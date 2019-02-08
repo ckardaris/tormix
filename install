@@ -1,9 +1,9 @@
-#!/usr/bin/sh
+#!/usr/bin/env bash
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-sudo cp -f $dir/torque /usr/bin/ 
+sudo cp -f $dir/tormix /usr/bin/ 
 
-if [ ! -d "$HOME/.config/torque/themes" ]; then
-	mkdir -p $HOME/.config/torque/themes
+if [ ! -d "$HOME/.config/tormix/themes" ]; then
+	mkdir -p $HOME/.config/tormix/themes
 fi
-cp -f $dir/themes/* $HOME/.config/torque/themes
+cp -f $dir/themes/* $HOME/.config/tormix/themes
