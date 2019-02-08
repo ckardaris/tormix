@@ -20,10 +20,12 @@ refresh() {
     printf '\e[?1049h\e[?6h\e[?7l\e[?25l\e[2J\e[H'
     shopt -s checkwinsize; (:;:)
     [[ -z "$LINES" ]] && read -r LINES COLUMNS < <(stty size)
-    # j is maximum torrents to be displayed in view
+    # max_t is maximum torrents to be displayed in view
 	# change number of lines to use in the end of the screen to 3 
 	# to provide space for the color line
-	((j=(LINES-3)/3))
+	((max_t=(LINES-3)/3))
+	# start from 1st torrent if they all fit
+	((top=max_t<${#t[@]}?top:0))
 }
 
 status() {
@@ -50,10 +52,16 @@ get_torrents() {
     t=("${t[@]//Up & Down/Active}")
     t=("${t[@]//Downloading/Active}")
     t=("${t[@]//     None/0 MB}")
+    t=("${t[@]/n\/a/0}")
 
 	# new j is max of old j and number of torrents
-    for((i=${k:=0};i<(j=j>${#t[@]}?${#t[@]}:j);i++));{ t_print "${t[i]/n\/a/0}";}
-    status "[s]tart [p]ause [r]emove [o]pen [t]heme [q]uit [j/k] scroll ($j/${#t[@]})"$'\e[H'
+	((limit=top+max_t>${#t[@]}?${#t[@]}:top+max_t))
+	for(( i=top;i<limit; i++ ))
+	do
+		t_print "${t[i]}"
+	done
+	((show=max_t<${#t[@]}?max_t:${#t[@]}-top))
+    status "[s]tart [p]ause [r]emove [o]pen [t]heme [q]uit [j/k] scroll ($show/${#t[@]})"$'\e[H'
 }
 
 t_print() {
@@ -158,7 +166,7 @@ t_print() {
 	# 'e[xC' move x columns right
 	
 	printf '\e[K\e7%s\e8\e[14C%s\e8\e[32C%s\e8\e[40C%s\e8\e[55C%s\e8\e[70C%s\e8\e[80C%s\n\e[K\n' \
-           "    $stat: " "$have / $size" "(${perc}%)" "⇣ $down" "| ⇡ $up" "$sent" "| ⌚$eta" 
+           "    $stat: " "$have / $size" "(${perc}%)" "⇣ $down" "| ⇡ $up" "$sent" "| ⌚$eta"
 }
 
 prompt() {
@@ -170,8 +178,10 @@ prompt() {
         p) read -rp "pause torrent: #";  send -t "$REPLY" -S ;;
         r) read -rp "remove torrent: #"; send -t "$REPLY" -r; k=0 ;;
         o) read -erp "load magnet: ";     send -a "$REPLY"; k=0 ;;
-        j) ((j==${#t[@]}))||((k=k>=j?k:++k,j=j<${#t[@]}?++j:j)) ;;
-        k) ((k==0))||((k=k<=j?k>0?--k:0:j,j=j>0?--j:j)) ;;
+        #j) ((j==${#t[@]}))||((k=k>=j?k:++k,j=j<${#t[@]}?++j:j)) ;;
+		j) ((max_t>=${#t[@]})) || ((top=top+max_t<${#t[@]}?++top:top)) ;;
+        #k) ((k==0))||((k=k<=j?k>0?--k:0:j,j=j>0?--j:j)) ;;
+        k) ((top==0)) || ((top--)) ;;
 		t) read -rp "change theme: "; source $HOME/.config/torque/themes/$REPLY.theme; \
 			cp -f $HOME/.config/torque/themes/{$REPLY,.saved}.theme ;; 
 		q) exit ;;
@@ -182,9 +192,11 @@ prompt() {
 
 main() {
 	refresh
+	top=0
 
     trap 'reset_terminal; printf "\e[?1049l"' EXIT
-    trap 'refresh; k=0' SIGWINCH
+    # We don't want k to be 0 after refresh -> preserve state
+	trap 'refresh' SIGWINCH
 
     for ((;;)); { get_torrents; read -rsN1 -t1 && prompt "$REPLY"; }
 }
