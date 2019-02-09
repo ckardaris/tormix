@@ -230,7 +230,6 @@ prompt() {
 			case "$char" in
 				$'\b') input="$auto"; input="${input%?}"; auto="$input"; suggest=0;;
 				""|$'\n') input="$auto"; break;;
-				$'\e[B') input="$auto"; suggest=0;;
 				$'\e') input=""; break;;
 				$'\t') 
 					autocomp "$2";;
