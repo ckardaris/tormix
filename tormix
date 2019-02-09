@@ -23,7 +23,7 @@ refresh() {
     # max_t is maximum torrents to be displayed in view
 	# change number of lines to use in the end of the screen to 4 
 	# to provide space for the color line and the line of pressed spaced after input
-	((max_t=(LINES-4)/3))
+	((max_t=(LINES-3)/3))
 	# start from 1st torrent if they all fit
 	((top=max_t<${#t[@]}?top:0))
 	stty -echo
@@ -32,14 +32,14 @@ refresh() {
 status() {
 	# I reset formatting after every word in case some color has more attributes than fg color
 	# color info
-	printf '\e[%sH\e[1m\e[%smReady\e[m\e[1m   \e[1m\e[%smSeeding\e[m\e[1m   '  "$((LINES-3))" \
+	printf '\e[%sH\e[1m\e[%smReady\e[m\e[1m   \e[1m\e[%smSeeding\e[m\e[1m   '  "$((LINES-2))" \
 		"$cready" "$cseeding"
 	printf '\e[%smDownloading\e[m\e[1m   \e[%smStopped\e[m\n' \
 		"$cdl" "$cstop"
 	# '\e[2m': Turn low intensity mode on (shadow letters)
 	# '\e[%s;H%s'    "$((LINES-1))": move cursor to line $lines-1
 	# '\e[m': Turn off character attributes (no more shadow letters)
-    printf '\e[2m\e[%sH%s\e[m' "$((LINES-2))" "$1"
+    printf '\e[2m\e[%sH%s\e[m' "$((LINES-1))" "$1"
 }
 
 get_torrents() {
@@ -179,23 +179,40 @@ prompt() {
     send() { transmission-remote "$@" &> /dev/null; }
 	# I hide output in all other cases in order to prevent screen 
 	# tearing from excessive number of inputs
-	line() { status $'\e[B\e[?25h' ; stty echo;}
+	line() { status $'\e[B\e[?25h';}
+	input=""
+	read_input() { 
+		printf "${1}\e7"
+		for ((;;))
+		do
+			printf "\e8\e[K${input}"
+			read -N1 -r char
+			case "$char" in
+				$'\b') input="${input%?}" ;;
+				""|$'\n') break;;
+				$'\e') input=""; break;;
+				*) 
+					input+="$char";;
+			esac
+		done
+	}
 
     case "$1" in
-        s) line; read -rp "start torrent: #";  send -t "$REPLY" -s ;;
-        p) line; read -rp "pause torrent: #";  send -t "$REPLY" -S ;;
-        r) line; read -rp "remove torrent: #"; send -t "$REPLY" -r; top=0 ;;
+        s) line; read_input "start torrent: #";  send -t "$input" -s ;;
+        p) line; read_input "pause torrent: #";  send -t "$input" -S ;;
+        r) line; read_input -rp "remove torrent: #"; send -t "$input" -r; top=0 ;;
 		# if I add something I want to see it
-		o) line; read -erp "load magnet: ";     send -a "$REPLY"; ((top=top+max_t>${#t[@]}+1?top:${#t[@]}+1-max_t)) ;;
+		o) line; read_input "load magnet: ";     send -a "$input"; ((top=top+max_t>${#t[@]}+1?top:${#t[@]}+1-max_t)) ;;
 		j) ((max_t>=${#t[@]})) || ((top=top+max_t<${#t[@]}?++top:top)) ;;
         k) ((top==0)) || ((top--)) ;;
-		t) line; read -rp "change theme: "; source $HOME/.config/tormix/themes/$REPLY.theme &> /dev/null; \
-			cp -f $HOME/.config/tormix/themes/{$REPLY,.saved}.theme &> /dev/null;; 
+		t) line; read_input "change theme: "; source $HOME/.config/tormix/themes/$input.theme &> /dev/null; \
+			cp -f $HOME/.config/tormix/themes/{$input,.saved}.theme &> /dev/null;; 
 		q) exit ;;
 	esac
 	
-	[[ "$1" =~ (s|p|q|o|t) ]] && printf "\e[%sH\e[K\e[?25l\e[H" "$((LINES-1))"
-	# if user deletes an entry refresh is required
+	[[ "$1" =~ (s|p|q|t|o) ]] && printf "\e[%sH\e[K\e[?25l\e[H" "$((LINES))"
+	# if user deletes or adds an entry refresh is required
+	# on addition because autocomplete may corrupt output
 	[[ "$1" =~ (r) ]] && refresh
 }
 
