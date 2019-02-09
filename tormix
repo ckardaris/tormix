@@ -200,7 +200,7 @@ prompt() {
     case "$1" in
         s) line; read_input "start torrent: #";  send -t "$input" -s ;;
         p) line; read_input "pause torrent: #";  send -t "$input" -S ;;
-        r) line; read_input -rp "remove torrent: #"; send -t "$input" -r; top=0 ;;
+        r) line; read_input "remove torrent: #"; send -t "$input" -r; top=0 ;;
 		# if I add something I want to see it
 		o) line; read_input "load magnet: ";     send -a "$input"; ((top=top+max_t>${#t[@]}+1?top:${#t[@]}+1-max_t)) ;;
 		j) ((max_t>=${#t[@]})) || ((top=top+max_t<${#t[@]}?++top:top)) ;;
