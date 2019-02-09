@@ -56,6 +56,7 @@ get_torrents() {
     t=("${t[@]/n\/a/0}")
 
 	# new j is max of old j and number of torrents
+	ids=""
 	((limit=top+max_t>${#t[@]}?${#t[@]}:top+max_t))
 	for(( i=top;i<limit; i++ ))
 	do
@@ -67,7 +68,7 @@ get_torrents() {
 
 t_print() {
     IFS=" %" read -r num perc have unit time up down _ stat name <<< "$1"
-	
+	ids+="$num "
 	read -d "" -ra info <<< $(transmission-remote -t $num -i)
 	
 	# Info comes in this order:
@@ -180,39 +181,80 @@ prompt() {
 	# I hide output in all other cases in order to prevent screen 
 	# tearing from excessive number of inputs
 	line() { status $'\e[B\e[?25h';}
+	
+	suggest=0
+	autocomp() {
+		if [ "$1" == "o" ]
+		then
+			IFS=$'\n' read -d "" -ra comp <<< $(compgen -f "$input")
+			IFS=$'\n' read -d "" -ra dir <<< $(compgen -d "$input")
+			dptr=0
+			#we will check what files of comp are directories to append "/"
+			for (( cptr=0; cptr<${#comp[*]}; cptr++))
+			do
+				if [ "${comp[$cptr]}" == "${dir[$dptr]}" ]
+				then
+					comp[$cptr]+="/"
+					if [ $dptr == $((${#dir[*]}-1)) ]
+					then
+						break
+					else
+						((dptr++))
+					fi
+				fi
+			done
+		elif [ "$1" == "t" ]
+		then
+			IFS=$'\n' read -d "" -ra comp <<< $(compgen -f $HOME/.config/tormix/themes/$input)
+			comp=("${comp[@]%.theme}")
+			comp=("${comp[@]##*themes/}")
+		elif [[ "$1" =~ (s|p|r|) ]]
+		then
+			#comp=("${ids[@]}")
+			read -ra comp <<< $(echo $ids)
+		fi
+		# I want an empty suggestion at the end; only the input
+		comp=("${comp[@]}" "$input")
+		auto="${comp[$suggest]}"
+		(( suggest=(suggest+1)%${#comp[*]} ))
+	}
+	
 	input=""
+	auto=""
 	read_input() { 
 		printf "${1}\e7"
 		for ((;;))
 		do
-			printf "\e8\e[K${input}"
+			printf "\e8\e[K${auto}"
 			read -N1 -r char
 			case "$char" in
-				$'\b') input="${input%?}" ;;
-				""|$'\n') break;;
+				$'\b') input="$auto"; input="${input%?}"; auto="$input"; suggest=0;;
+				""|$'\n') input="$auto"; break;;
+				$'\e[B') input="$auto"; suggest=0;;
 				$'\e') input=""; break;;
+				$'\t') 
+					autocomp "$2";;
 				*) 
-					input+="$char";;
+					input="$auto"; input+="$char"; auto="$input"; suggest=0;;
 			esac
 		done
 	}
 
     case "$1" in
-        s) line; read_input "start torrent: #";  send -t "$input" -s ;;
-        p) line; read_input "pause torrent: #";  send -t "$input" -S ;;
-        r) line; read_input "remove torrent: #"; send -t "$input" -r; top=0 ;;
+        s) line; read_input "start torrent: #" "a";  send -t "$input" -s ;;
+        p) line; read_input "pause torrent: #" "p";  send -t "$input" -S ;;
+        r) line; read_input "remove torrent: #" "r"; send -t "$input" -r; top=0 ;;
 		# if I add something I want to see it
-		o) line; read_input "load magnet: ";     send -a "$input"; ((top=top+max_t>${#t[@]}+1?top:${#t[@]}+1-max_t)) ;;
+		o) line; read_input "load magnet: " "o";     send -a "$input"; ((top=top+max_t>${#t[@]}+1?top:${#t[@]}+1-max_t)) ;;
 		j) ((max_t>=${#t[@]})) || ((top=top+max_t<${#t[@]}?++top:top)) ;;
         k) ((top==0)) || ((top--)) ;;
-		t) line; read_input "change theme: "; source $HOME/.config/tormix/themes/$input.theme &> /dev/null; \
-			cp -f $HOME/.config/tormix/themes/{$input,.saved}.theme &> /dev/null;; 
+		t) line; read_input "change theme: " "t"; source $HOME/.config/tormix/themes/$input.theme &> /dev/null; \
+			cp -f $HOME/.config/tormix/{themes/$input,.saved}.theme &> /dev/null;; 
 		q) exit ;;
 	esac
 	
 	[[ "$1" =~ (s|p|q|t|o) ]] && printf "\e[%sH\e[K\e[?25l\e[H" "$((LINES))"
-	# if user deletes or adds an entry refresh is required
-	# on addition because autocomplete may corrupt output
+	# if user deletes an entry refresh is required
 	[[ "$1" =~ (r) ]] && refresh
 }
 
@@ -226,9 +268,11 @@ main() {
     for ((;;)); { get_torrents; read -rsN1 -t1 && prompt "$REPLY";}
 }
 
-if [ ! -f $HOME/.config/tormix/themes/.saved.theme ]
+# saved theme goes in the parent directory to help with the autocomplete 
+# of option 't'
+if [ ! -f $HOME/.config/tormix/.saved.theme ]
 then
-	cp -f $HOME/.config/tormix/themes/{default,.saved}.theme
+	cp -f $HOME/.config/tormix/{themes/default,.saved}.theme
 fi
-source $HOME/.config/tormix/themes/.saved.theme
+source $HOME/.config/tormix/.saved.theme
 main
