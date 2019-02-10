@@ -182,7 +182,7 @@ prompt() {
 	# tearing from excessive number of inputs
 	line() { status $'\e[B\e[?25h';}
 	
-	suggest=0
+	suggest=""
 	autocomp() {
 		if [ "$1" == "o" ]
 		then
@@ -213,10 +213,19 @@ prompt() {
 			#comp=("${ids[@]}")
 			read -ra comp <<< $(echo $ids)
 		fi
-		# I want an empty suggestion at the end; only the input
 		comp=("${comp[@]}" "$input")
+		if [ -z "$suggest" ]
+		then
+			(( suggest=${#comp[*]}-1 ))
+		fi
+		# if shift-tab I want reverse everything
+		if [ "$2" == "rev" ]
+		then
+			((suggest=suggest==0?${#comp[*]}-1:suggest-1))
+		else
+			(( suggest=(suggest+1)%${#comp[*]} ))
+		fi
 		auto="${comp[$suggest]}"
-		(( suggest=(suggest+1)%${#comp[*]} ))
 	}
 	
 	input=""
@@ -227,14 +236,23 @@ prompt() {
 		do
 			printf "\e8\e[K${auto}"
 			read -N1 -r char
+			# read special characters
+			read -sN1 -t 0.0001 k1
+			read -sN1 -t 0.0001 k2
+			read -sN1 -t 0.0001 k3
+			key=${char}${k1}${k2}${k3}
+			case "$key" in
+				$'\e[B') input="$auto"; suggest=; continue;;
+				$'\e[Z') autocomp "$2" "rev"; continue;;
+			esac
 			case "$char" in
-				$'\b') input="$auto"; input="${input%?}"; auto="$input"; suggest=0;;
+				$'\b') input="$auto"; input="${input%?}"; auto="$input"; suggest="";;
 				""|$'\n') input="$auto"; break;;
 				$'\e') input=""; break;;
 				$'\t') 
 					autocomp "$2";;
 				*) 
-					input="$auto"; input+="$char"; auto="$input"; suggest=0;;
+					input="$auto"; input+="$char"; auto="$input"; suggest="";;
 			esac
 		done
 	}
