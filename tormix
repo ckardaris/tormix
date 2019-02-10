@@ -234,7 +234,9 @@ prompt() {
 		printf "${1}\e7"
 		for ((;;))
 		do
-			printf "\e8\e[K${auto}"
+			# fix print of '%' in magnet link
+			printf "\e8\e[K"
+			echo -n "${auto}"
 			read -N1 -r char
 			# read special characters
 			read -sN1 -t 0.0001 k1
