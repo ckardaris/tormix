@@ -5,7 +5,7 @@
 #    - without spaces before and after the '=' sign
 #    - using quotes
 
-cready="32"
-cseeding="34"
-cdl="33"
-cstop="31"
+TM_COL_READY="32"
+TM_COL_SEEDING="34"
+TM_COL_DOWNLOADING="33"
+TM_COL_STOPPED="31"

@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
 sudo rm -f /usr/bin/tormix
+sudo rm -f /usr/share/man/man1/tormix.1.gz

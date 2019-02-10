@@ -7,3 +7,6 @@ if [ ! -d "$HOME/.config/tormix/themes" ]; then
 	mkdir -p $HOME/.config/tormix/themes
 fi
 cp -f $dir/themes/* $HOME/.config/tormix/themes
+sudo rm /usr/share/man/man1/tormix.1.gz &>/dev/null
+sudo cp -f $dir/tormix.1 /usr/share/man/man1/
+sudo gzip /usr/share/man/man1/tormix.1

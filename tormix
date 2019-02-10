@@ -33,9 +33,9 @@ status() {
 	# I reset formatting after every word in case some color has more attributes than fg color
 	# color info
 	printf '\e[%sH\e[1m\e[%smReady\e[m\e[1m   \e[1m\e[%smSeeding\e[m\e[1m   '  "$((LINES-2))" \
-		"$cready" "$cseeding"
+		"$TM_COL_READY" "$TM_COL_SEEDING"
 	printf '\e[%smDownloading\e[m\e[1m   \e[%smStopped\e[m\n' \
-		"$cdl" "$cstop"
+		"$TM_COL_DOWNLOADING" "$TM_COL_STOPPED"
 	# '\e[2m': Turn low intensity mode on (shadow letters)
 	# '\e[%s;H%s'    "$((LINES-1))": move cursor to line $lines-1
 	# '\e[m': Turn off character attributes (no more shadow letters)
@@ -131,34 +131,34 @@ t_print() {
 	if [ $perc == 100 ] && [ "$stat" == "Stopped" ]
 	then
 		#color
-		c=$cready
+		c=$TM_COL_READY
 		#unicode
 		u=2713
 		#next char
 		l=40
 	elif [ $perc == 100 ] && [ "$stat" == "Idle" ]
 	then
-		c=$cready
+		c=$TM_COL_READY
 		u=2713
 		l=40
 	elif [ $perc == 100 ] && [ "$stat" == "Seeding" ]
 	then
-		c=$cseeding
+		c=$TM_COL_SEEDING
 		u=2713
 		l=40
 	elif [ $perc -lt $((100)) ] && [ "$stat" == "Stopped" ]
 	then
-		c=$cstop
+		c=$TM_COL_STOPPED
 		u=0000
 		l=00
 	elif [ $perc -lt $((100)) ] && [ "$stat" == "Idle" ]
 	then
-		c=$cdl
+		c=$TM_COL_DOWNLOADING
 		u=0000
 		l=00
 	elif [ $perc -lt $((100)) ] && [ "$stat" == "Active" ]
 	then
-		c=$cdl
+		c=$TM_COL_DOWNLOADING
 		u=0000
 		l=00
 	fi

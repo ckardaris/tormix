@@ -1,0 +1,71 @@
+.\" Manpage for tormix.
+.\" Contact ckardarisk@outlook.com to correct errors or typos.
+.TH TORMIX 1 "Feb 2019" "tormix" "User Commands"
+.SH NAME
+.B tormix 
+\- A TUI for the transmission-cli 
+.SH SYNOPSIS
+.B tormix
+.SH DESCRIPTION
+.B tormix 
+is a TUI (terminal user interface) written in pure bash, created to provide support for the 
+.B transmission-cli 
+program. 
+It makes easy the actions of adding, removing, starting and pausing torrents, 
+while providing a clean interface with customizable colors.
+.SH COLORS
+After the installation, all available color themes are placed in the directory 
+.I $HOME/.config/tormix/themes/
+
+These themes will be available for selection with the (t)heme option. 
+If you want to create your own theme, just 
+copy one of the provided themes, change the values of the relevant variables and move it in the same 
+directory with a new name (You should not modify existing themes, as they will be overwritten after the next update
+(for compatibilty reasons with the new version). 
+
+.B tormix 
+reads the configuration of the file 
+.I $HOME/.config/tormix/.saved.theme 
+after being launched, which is
+configured automatically each time you change a theme from the TUI, so you should not modify it.
+If this file does not exist (e.g. first launch of the program), tormix will use the default theme. 
+If for some reason theming does not function correctly (e.g. after an update), it is advised to remove 
+.I $HOME/.config/tormix/.saved.theme
+.SH SEE ALSO
+transmission-cli(1), transmission-remote(1), transmission-daemon(1)
+.SH BUGS
+No known bugs.
+
+Report issues at: 
+
+- https://github.com/ckardaris/tormix/issues
+
+- ckardaris@outlook.com
+.SH AUTHORS
+Charalampos Kardaris (ckardaris@outlook.com)
+
+Dylan Araps (dylan.araps@gmail.com) (initial code)
+.SH COPYRIGHT
+The MIT License (MIT)
+
+Copyright (c) 2016-2018 Dylan Araps
+
+Copyright (c) 2019 Charalampos Kardaris
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
