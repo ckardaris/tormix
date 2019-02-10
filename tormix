@@ -252,7 +252,7 @@ prompt() {
 				$'\t') 
 					autocomp "$2";;
 				*) 
-					input="$auto"; input+="$char"; auto="$input"; suggest="";;
+					input="$auto"; input+="$key"; auto="$input"; suggest="";;
 			esac
 		done
 	}
