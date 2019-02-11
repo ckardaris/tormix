@@ -161,6 +161,12 @@ t_print() {
 		c=$TM_COL_DOWNLOADING
 		u=0000
 		l=00
+	else
+		#default
+		c=$TM_COL_DOWNLOADING
+		u=0000
+		l=00
+
 	fi
 	# '\e[K' : clear line right of the cursor
 	# '\e[2m': low intensity mode on
@@ -242,7 +248,7 @@ prompt() {
 			read -sN1 -t 0.0001 k1
 			read -sN1 -t 0.0001 k2
 			read -sN1 -t 0.0001 k3
-			key=${char}${k1}${k2}${k3}
+			key="${char}${k1}${k2}${k3}"
 			case "$key" in
 				$'\e[B') input="$auto"; suggest=; continue;;
 				$'\e[Z') autocomp "$2" "rev"; continue;;
@@ -264,7 +270,7 @@ prompt() {
         p) line; read_input "pause torrent: #" "p";  send -t "$input" -S ;;
         r) line; read_input "remove torrent: #" "r"; send -t "$input" -r; top=0 ;;
 		# if I add something I want to see it
-		o) line; read_input "load magnet: " "o";     send -a "$input"; ((top=top+max_t>${#t[@]}+1?top:${#t[@]}+1-max_t)) ;;
+		o) line; read_input "load magnet: " "o";     send -a "${input/#~/${HOME}}"; ((top=top+max_t>${#t[@]}+1?top:${#t[@]}+1-max_t)) ;;
 		j) ((max_t>=${#t[@]})) || ((top=top+max_t<${#t[@]}?++top:top)) ;;
         k) ((top==0)) || ((top--)) ;;
 		t) line; read_input "change theme: " "t"; source $HOME/.config/tormix/themes/$input.theme &> /dev/null; \
