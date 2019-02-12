@@ -17,7 +17,7 @@ I decided to change the name (to not conflict with other existing programs) and 
 This is a `bash` script, so it does not require an installation.<br><br>
 Nevertheless, if you want to properly configure the `.config/tormix` directory for color support<br>
 and place the script and its man page in the proper directories of `/usr`, you can run<br><br>
-`./install` (it requires sudo access)<br><br>
+`./install` <br><br>
 In any case, you can always place the script where you like manually.
 
 ## Running
