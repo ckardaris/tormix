@@ -278,9 +278,9 @@ prompt() {
 		q) exit ;;
 	esac
 	
-	[[ "$1" =~ (s|p|q|t|o) ]] && printf "\e[%sH\e[K\e[?25l\e[H" "$((LINES))"
+	[[ "$1" =~ (s|p|q|t|o|r) ]] && printf "\e[%sH\e[K\e[?25l\e[H" "$((LINES))"
 	# if user deletes an entry refresh is required
-	[[ "$1" =~ (r) ]] && refresh
+	[[ "$1" =~ (r) ]] && [ ! "$input" == "" ] && refresh
 }
 
 main() {
@@ -300,4 +300,9 @@ then
 	cp -f $HOME/.config/tormix/{themes/default,.saved}.theme
 fi
 source $HOME/.config/tormix/.saved.theme
-main
+
+if [ "$#" == 1 ]
+then
+	transmission-remote -a "$1"
+fi
+	main
